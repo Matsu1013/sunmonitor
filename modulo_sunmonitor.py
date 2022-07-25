@@ -3,6 +3,8 @@ import time
 import network, time, urequests, utime, ujson, random, framebuf
 import ufirebase as firebase
 from ssd1306 import SSD1306_I2C
+from time import localtime
+import ntptime
     
 #metodos para el manejo de la pantalla oled    
 ancho = 128
@@ -31,27 +33,50 @@ def oledmonitor(vbateria,vpanel,resultado):
     oled.show()
     
 def buscar_icono(ruta):
-    dibujo= open(ruta, "rb")  # Abrir en modo lectura de bist
-    dibujo.readline() # metodo para ubicarse en la primera linea de los bist
-    xy = dibujo.readline() # ubicarnos en la segunda linea
-    x = int(xy.split()[0])  # split  devuelve una lista de los elementos de la variable solo 2 elemetos
+    dibujo= open(ruta, "rb")  
+    dibujo.readline() 
+    xy = dibujo.readline() 
+    x = int(xy.split()[0])  
     y = int(xy.split()[1])
-    icono = bytearray(dibujo.read())  # guardar en matriz de bites
+    icono = bytearray(dibujo.read()) 
     dibujo.close()
     return framebuf.FrameBuffer(icono, x, y, framebuf.MONO_HLSB)
 
+#metodos para conexión a internet
 def conectaWifi (red, password):
       global miRed
       miRed = network.WLAN(network.STA_IF)     
-      if not miRed.isconnected():              #Si no está conectado…
-          miRed.active(True)                   #activa la interface
-          miRed.connect(red, password)         #Intenta conectar con la red
+      if not miRed.isconnected():             
+          miRed.active(True)                 
+          miRed.connect(red, password)        
           print('Conectando a la red', red +"…")
           timeout = time.time ()
-          while not miRed.isconnected():           #Mientras no se conecte..
+          while not miRed.isconnected():        
               if (time.ticks_diff (time.time (), timeout) > 10):
                   return False
       return True
-
+    
+    
+#metodos para envio de notificaciones
 def notiiftttt(vbateria):
     print("enviar notificación, la bateria esta en: ", vbateria)
+
+#metodos para traer hora local actual
+ntptime.host = "co.pool.ntp.org"
+ntptime.settime ()     
+timezone = -5
+ntptime.settime ()
+hora_local_seg = time.time () + timezone * 3600  #Hora local en segundos     
+hora_local = time.localtime (hora_local_seg)     #Pasa a tupla de 8 elementos
+    
+def hora_actual():
+    hora=("{:02}".format (hora_local[3]))
+    return hora
+        
+def minuto_actual():
+    minuto=("{:02}".format (hora_local[4]))
+    return minuto
+    
+def fecha_actual():
+    dia=("{:02}".format (hora_local[2]))
+    return dia
